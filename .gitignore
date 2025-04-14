@@ -1,0 +1,7 @@
+alas-backend/app/.env
+alas-backend/.alas
+
+
+__pycache__/
+
+alas-backend/app/db
