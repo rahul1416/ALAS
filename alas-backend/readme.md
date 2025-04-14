@@ -1,10 +1,10 @@
-# 🧠 ALAS Backend
+# ALAS Backend
 
 The **ALAS Backend** is a FastAPI-based server that powers an AI-driven adaptive learning and assessment system. It supports multiple user roles (Admin, Teacher, Student), intelligent chat interaction, and an adaptive JEE quiz engine using LLMs and vector search.
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 alas-backend/
@@ -40,19 +40,19 @@ alas-backend/
 
 ## 🚀 Features
 
-- ✅ **JWT Authentication** with role-based access (Admin / Teacher / Student)
-- 🤖 **AI-Powered Chatbot** with FAISS vector search + LangChain + RAG
-- 📚 **Adaptive JEE Quiz System** using LLM feedback and user profiling
-- 🔐 **Secure Config Management** using `.env` and a centralized config
-- 🔄 **Chat History Tracking** stored per-user for contextual conversations
+-  **JWT Authentication** with role-based access (Admin / Teacher / Student)
+-  **AI-Powered Chatbot** with FAISS vector search + LangChain + RAG
+-  **Adaptive JEE Quiz System** using LLM feedback and user profiling
+-  **Secure Config Management** using `.env` and a centralized config
+-  **Chat History Tracking** stored per-user for contextual conversations
 
 ---
 
-## 🔧 Setup & Installation
+## Setup & Installation
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/alas-backend.git
+   git clone https://github.com/rahul1416/ALAS.git
    cd alas-backend
    ```
 
@@ -82,7 +82,7 @@ alas-backend/
 
 ---
 
-## ▶️ Running the Server
+## ▶ Running the Server
 
 ```bash
 uvicorn main:app --reload
@@ -90,7 +90,7 @@ uvicorn main:app --reload
 
 ---
 
-## 🧐 Tech Stack
+## Tech Stack
 
 - **FastAPI** – High-performance API framework
 - **LangChain + Groq + HuggingFace** – Chatbot with RAG + embeddings
@@ -116,7 +116,7 @@ uvicorn main:app --reload
 
 ---
 
-## 🛡️ Security & Best Practices
+##  Security & Best Practices
 
 - API keys and sensitive info are stored securely via `.env` + `config.py`.
 - JWT tokens validate user roles before accessing endpoints.
@@ -125,7 +125,7 @@ uvicorn main:app --reload
 
 ---
 
-## 👥 Contributing
+##  Contributing
 
 PRs are welcome! Please make sure to:
 - Follow the existing folder structure
@@ -134,15 +134,10 @@ PRs are welcome! Please make sure to:
 
 ---
 
-## 📄 License
 
-This project is under the **MIT License**.
+## Contact
 
----
-
-## 💬 Contact
-
-For queries, contributions, or bugs, reach out to [your-email@example.com](mailto:your-email@example.com)
+For queries, contributions, or bugs, reach out to [rahulverma@iitbhilai.ac.in](mailto:your-email@example.com)
 
 ---
 
