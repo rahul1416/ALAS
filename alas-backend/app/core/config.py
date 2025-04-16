@@ -13,5 +13,6 @@ class Settings:
     RERANKER: str = os.getenv("RERANKER")
     TEXT_CHUNKS: str = os.getenv("TEXT_CHUNKS")
     QUESTIONS: str = os.getenv("QUESTIONS")
-
+    MODEL_DIR: str = os.getenv("MODEL_DIR")
+    USER_PROFILE: str = os.getenv("USER_PROFILE")
 settings = Settings()
