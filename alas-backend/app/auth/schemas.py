@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 from enum import Enum
 
 class RoleEnum(str, Enum):
@@ -6,12 +6,17 @@ class RoleEnum(str, Enum):
     teacher = "teacher"
     student = "student"
 
-class UserBase(BaseModel):
-    username: str
 
 class UserLogin(BaseModel):
-    username: str
+    email: EmailStr
     password: str
 
-class UserOut(UserBase):
-    role: RoleEnum
+class UserInDB(BaseModel):
+    email: EmailStr
+    hashed_password: str
+    role: str
+
+class UserSignup(BaseModel):
+    email: EmailStr
+    password: str
+    role: RoleEnum 

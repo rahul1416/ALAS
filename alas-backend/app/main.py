@@ -4,26 +4,27 @@ from app.auth.auth import create_access_token
 from app.auth.schemas import UserLogin
 from app.routes import admin, teacher, student
 
+from app.auth import auth
 from app.chatbot import chat
 from app.ques_ans import quiz
 
 app = FastAPI()
 
-fake_db = {
-    "admin1": {"username": "admin1", "password": "adminpass", "role": "admin"},
-    "teacher1": {"username": "teacher1", "password": "teacherpass", "role": "teacher"},
-    "student1": {"username": "student1", "password": "studentpass", "role": "student"},
-}
+from fastapi.middleware.cors import CORSMiddleware
 
-@app.post("/login")
-def login(data: UserLogin):
-    user = fake_db.get(data.username)
-    if not user or user["password"] != data.password:
-        raise HTTPException(status_code=401, detail="Invalid credentials")
-    token = create_access_token({"username": user["username"], "role": user["role"]})
-    return {"access_token": token, "token_type": "bearer"}
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Replace "*" with your frontend URL in production
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
-# Register routers
+@app.get("/")
+async def root():
+    return {"message": "Welcome to ALAS Backend!"}
+    
+app.include_router(auth.router)
 app.include_router(admin.router)
 app.include_router(teacher.router)
 app.include_router(student.router)
