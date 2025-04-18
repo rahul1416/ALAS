@@ -10,6 +10,9 @@ from langchain_groq import ChatGroq
 import os
 
 from app.core.config import settings
+from app.mongo import profiles_collection
+from bson import ObjectId
+
 
 class QuestionPredictor(nn.Module):
     def __init__(self, input_dim):
@@ -26,6 +29,7 @@ class QuestionPredictor(nn.Module):
     def forward(self, x):
         return self.fc(x)
 
+
 class AdaptiveModel:
     def __init__(self, questions_path, user_id, model_dir=settings.MODEL_DIR, user_db=settings.USER_PROFILE):
         self.questions = pd.read_csv(questions_path)
@@ -37,8 +41,10 @@ class AdaptiveModel:
         os.makedirs(model_dir, exist_ok=True)
         self.user_db = user_db
         self.user_id = user_id
-        self.profile = self.load_or_init_profile()
-        self.model = self.load_model()
+
+        # Initialize attributes that will be set asynchronously
+        self.profile = None
+        self.model = None
 
         # Groq client for LLM explanation
         self.groq_client = ChatGroq(temperature=0.7, model_name="llama3-8b-8192")
@@ -69,27 +75,35 @@ class AdaptiveModel:
             Provide only the response to the user's answer:"""
         )
 
-    def load_or_init_profile(self):
-        if os.path.exists(self.user_db):
-            with open(self.user_db) as f:
-                profiles = json.load(f)
-        else:
-            profiles = {}
+    async def load_or_init_profile(self):
+        profile = await profiles_collection.find_one({"user_id": self.user_id})
+        if profile:
+            return profile["data"]
 
-        if self.user_id not in profiles:
-            profiles[self.user_id] = {
-                "performance_history": [],
-                "strength_topics": [],
-                "weak_topics": [],
-                "current_difficulty": 1
-            }
+        # If not found, create new
+        default_profile = {
+            "performance_history": [],
+            "strength_topics": [],
+            "weak_topics": [],
+            "current_difficulty": 1
+        }
+        await profiles_collection.insert_one({
+            "user_id": self.user_id,
+            "data": default_profile
+        })
+        return default_profile
 
-        self.profiles = profiles
-        return profiles[self.user_id]
+    async def initialize(self):
+        """Asynchronously initialize the model and profile."""
+        self.profile = await self.load_or_init_profile()
+        self.model = self.load_model()
 
-    def save_profile(self):
-        with open(self.user_db, "w") as f:
-            json.dump(self.profiles, f, indent=2)
+    async def save_profile(self):
+        await profiles_collection.update_one(
+            {"user_id": self.user_id},
+            {"$set": {"data": self.profile}},
+            upsert=True
+        )
 
     def extract_features(self, df):
         df = df.copy()
@@ -117,7 +131,6 @@ class AdaptiveModel:
         return self.questions[~self.questions["id"].isin([q for q, _ in self.profile["performance_history"]])]
 
     def select_question(self):
-        
         unanswered = self.get_unanswered().copy()
 
         if unanswered.empty:
@@ -180,5 +193,3 @@ class AdaptiveModel:
         )
         response = self.groq_client.invoke(prompt)
         return response.content
-
-

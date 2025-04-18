@@ -8,3 +8,4 @@ client = AsyncIOMotorClient(settings.MONGODB_URI)
 # Access the database and collection
 db = client["loginAlas"]  # Replace with your database name
 users_collection = db["users"]  # Replace with your collection name
+profiles_collection = db["profiles"]
