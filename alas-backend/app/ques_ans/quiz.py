@@ -6,7 +6,6 @@ from app.core.config import settings
 router = APIRouter(prefix="/quiz", tags=["Quiz"])
 
 QUESTIONS_CSV = settings.QUESTIONS
-
 # Global cache for AdaptiveModel instances
 adaptive_model_cache = {}
 
@@ -24,6 +23,7 @@ async def get_adaptive_model(user_id: str):
     """
     if user_id not in adaptive_model_cache:
         agent = AdaptiveModel(QUESTIONS_CSV, user_id)
+        # agent = AdaptiveModel(user_id)
         await agent.initialize()  # Initialize the model and profile asynchronously
         adaptive_model_cache[user_id] = agent
     return adaptive_model_cache[user_id]

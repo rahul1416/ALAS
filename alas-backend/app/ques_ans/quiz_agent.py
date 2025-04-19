@@ -7,12 +7,10 @@ import pandas as pd
 from sklearn.preprocessing import LabelEncoder
 from langchain.prompts import ChatPromptTemplate
 from langchain_groq import ChatGroq
-import os
-
+import os , io
+from app.db.mongo import fs, profiles_collection, db, user_collection
 from app.core.config import settings
-from app.mongo import profiles_collection
-from bson import ObjectId
-
+import asyncio
 
 class QuestionPredictor(nn.Module):
     def __init__(self, input_dim):
@@ -31,8 +29,9 @@ class QuestionPredictor(nn.Module):
 
 
 class AdaptiveModel:
-    def __init__(self, questions_path, user_id, model_dir=settings.MODEL_DIR, user_db=settings.USER_PROFILE):
+    def __init__(self,questions_path ,user_id, model_dir=settings.MODEL_DIR, user_db=settings.USER_PROFILE):
         self.questions = pd.read_csv(questions_path)
+        # self.questions = self.load_questions_from_mongodb()
         self.questions["id"] = self.questions.index
         self.le_topic = LabelEncoder()
         self.questions["topic_encoded"] = self.le_topic.fit_transform(self.questions["topic"])
@@ -75,6 +74,21 @@ class AdaptiveModel:
             Provide only the response to the user's answer:"""
         )
 
+    async def load_questions_from_mongodb(self):
+        """
+        Load questions from MongoDB and convert them to a DataFrame.
+        """
+        questions_collection = db["exaple_questions"]
+        questions = list(questions_collection.find({}))  # Retrieve all documents
+        if not questions:
+            raise ValueError("No questions found in MongoDB. Please upload questions first.")
+        
+        # Convert to a DataFrame
+        df = pd.DataFrame(questions)
+        df["id"] = df.index  # Add an 'id' column for indexing
+
+        return df
+        
     async def load_or_init_profile(self):
         profile = await profiles_collection.find_one({"user_id": self.user_id})
         if profile:
@@ -96,7 +110,7 @@ class AdaptiveModel:
     async def initialize(self):
         """Asynchronously initialize the model and profile."""
         self.profile = await self.load_or_init_profile()
-        self.model = self.load_model()
+        self.model = await self.load_model()
 
     async def save_profile(self):
         await profiles_collection.update_one(
@@ -164,20 +178,50 @@ class AdaptiveModel:
         loss = criterion(output, y_tensor)
         loss.backward()
         optimizer.step()
-        self.save_model()
+        print("online training ...")
+        # Use await instead of asyncio.run
+        asyncio.create_task(self.save_model())
 
-    def get_model_path(self):
-        return os.path.join(self.model_dir, f"{self.user_id}_model.pt")
-
-    def load_model(self):
+    async def load_model(self):
+        """
+        Load the user's model from GridFS.
+        """
         model = QuestionPredictor(self.input_dim)
-        model_path = self.get_model_path()
-        if os.path.exists(model_path):
-            model.load_state_dict(torch.load(model_path))
+        try:
+            # Query the fs.files collection for the file metadata
+            file_metadata = await db["fs.files"].find_one({"filename": f"{self.user_id}_model.pt"})
+            if file_metadata:
+                # Download the file using its _id
+                buffer = io.BytesIO()
+                await fs.download_to_stream(file_metadata["_id"], buffer)
+                buffer.seek(0)
+                model.load_state_dict(torch.load(buffer))
+
+                print("loading model.....")
+        except Exception as e:
+            print(f"Error loading model: {str(e)}")
         return model
 
-    def save_model(self):
-        torch.save(self.model.state_dict(), self.get_model_path())
+    async def save_model(self):
+        """
+        Save the user's model to GridFS.
+        """
+        try:
+            # Query the fs.files collection for the file metadata
+            file_metadata = await db["fs.files"].find_one({"filename": f"{self.user_id}_model.pt"})
+            if file_metadata:
+                # Delete the existing file using its _id
+                await fs.delete(file_metadata["_id"])
+
+            # Save the new model file
+            buffer = io.BytesIO()
+            torch.save(self.model.state_dict(), buffer)
+            buffer.seek(0)
+            await fs.upload_from_stream(filename=f"{self.user_id}_model.pt", source=buffer)
+
+            print("model saved...")
+        except Exception as e:
+            print(f"Error saving model: {str(e)}")
 
     async def get_llm_response(self, question, user_answer, correct_answer, options, difficulty):
         prompt = self.adaptive_prompt.format(

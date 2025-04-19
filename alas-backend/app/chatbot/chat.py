@@ -32,18 +32,15 @@ with open(settings.TEXT_CHUNKS, "rb") as f:
 async def answer_query(request: QueryRequest):
     query = request.query
     user_id = request.user_id
-    chat_history = load_chat_history()
+    chat_history = await load_chat_history(user_id)
 
-    if user_id not in chat_history:
-        chat_history[user_id] = []
-
-    chat_history[user_id].append({
+    chat_history.append({
         "role": "user",
         "content": query,
         "timestamp": datetime.now().isoformat()
     })
 
-    last_msgs = chat_history[user_id][-5:]
+    last_msgs = chat_history[-5:]
     history_context = "\n".join(
         f"{m['role'].capitalize()} ({m['timestamp']}): {m['content']}" for m in last_msgs
     )
@@ -56,7 +53,6 @@ async def answer_query(request: QueryRequest):
     if not retrieved_docs:
         raise HTTPException(status_code=404, detail="No relevant documents found.")
 
-    # Rerank
     query_doc_pairs = [(query, doc.page_content) for doc in retrieved_docs]
     scores = reranker.predict(query_doc_pairs)
     sorted_docs = [doc for _, doc in sorted(zip(scores, retrieved_docs), key=lambda x: x[0], reverse=True)]
@@ -77,18 +73,19 @@ async def answer_query(request: QueryRequest):
         "question": query
     })
 
+
     bot_msg = {
         "role": "bot",
         "content": response,
         "timestamp": datetime.now().isoformat()
     }
-    chat_history[user_id].append(bot_msg)
-    save_chat_history(chat_history)
+    chat_history.append(bot_msg)
 
-    return {"response": response, "history": chat_history[user_id]}
+    await save_chat_history(user_id, chat_history)
 
+    return {"response": response, "history": chat_history}
 
 @router.get("/history/{user_id}")
 async def get_history(user_id: str):
-    chat_history = load_chat_history()
-    return {"history": chat_history.get(user_id, [])}
+    chat_history = await load_chat_history(user_id)
+    return {"history": chat_history}
