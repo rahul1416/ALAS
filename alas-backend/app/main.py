@@ -8,11 +8,11 @@ from app.auth import auth
 from app.chatbot import chat
 from app.ques_ans import quiz
 
-app = FastAPI()
+ap = FastAPI()
 
 from fastapi.middleware.cors import CORSMiddleware
 
-app.add_middleware(
+ap.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],  # Replace "*" with your frontend URL in production
     allow_credentials=True,
@@ -20,13 +20,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-@app.get("/")
+@ap.get("/")
 async def root():
     return {"message": "Welcome to ALAS Backend!"}
     
-app.include_router(auth.router)
-app.include_router(admin.router)
-app.include_router(teacher.router)
-app.include_router(student.router)
-app.include_router(chat.router)
-app.include_router(quiz.router)
+ap.include_router(auth.router)
+ap.include_router(admin.router)
+ap.include_router(teacher.router)
+ap.include_router(student.router)
+ap.include_router(chat.router)
+ap.include_router(quiz.router)

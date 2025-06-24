@@ -1,0 +1,52 @@
+{
+  "rahul": {
+    "performance_history": [
+      [
+        14,
+        false
+      ],
+      [
+        15,
+        false
+      ],
+      [
+        29,
+        false
+      ],
+      [
+        0,
+        false
+      ],
+      [
+        1,
+        false
+      ],
+      [
+        12,
+        false
+      ]
+    ],
+    "strength_topics": [],
+    "weak_topics": [
+      "Chemistry",
+      "Atmospheric Pollution",
+      "Chemical Bonding",
+      "Organic Chemistry",
+      "Thermodynamics"
+    ],
+    "current_difficulty": 1
+  },
+  "suppi": {
+    "performance_history": [
+      [
+        24,
+        false
+      ]
+    ],
+    "strength_topics": [],
+    "weak_topics": [
+      "Surface Chemistry"
+    ],
+    "current_difficulty": 1
+  }
+}

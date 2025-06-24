@@ -4,4 +4,4 @@ alas-backend/.alas
 
 __pycache__/
 
-alas-backend/app/db
+#alas-backend/app/db

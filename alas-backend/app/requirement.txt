@@ -1,0 +1,27 @@
+# Requires Python 3.11.9
+scikit-learn
+statsmodels
+xarray
+dask
+numba
+gensim
+lightgbm
+torch
+transformers
+accelerate
+diffusers
+sentence-transformers
+faiss-cpu
+tokenizers
+safetensors
+fastapi
+uvicorn
+sqlalchemy
+python-jose
+python-dotenv
+motor
+passlib[bcrypt]
+email-validator
+langchain-groq
+langchain
+langchain-huggingface
