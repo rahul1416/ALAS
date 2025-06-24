@@ -1,8 +1,9 @@
 import pandas as pd
 from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorGridFSBucket
+from app.core.config import settings
 
 # Initialize MongoDB client
-client = AsyncIOMotorClient("mongodb+srv://rahulforlaptop:bTAWLxnolLzQDpih@loginalas.cqwqury.mongodb.net/?retryWrites=true&w=majority&appName=loginAlas")
+client = AsyncIOMotorClient(settings.MONGODB_URI)
 db = client["adaptive_learning"]
 questions_collection = db["exaple_questions"]
 
